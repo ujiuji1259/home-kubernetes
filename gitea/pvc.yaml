@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: gitea-shared-storage
+  namespace: gitea
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: 192.168.1.11
+    path: /export/nfs/gitea/shared-storage
+---
+# Source: gitea/templates/gitea/pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: gitea-shared-storage
+  namespace: gitea
+  annotations:
+    helm.sh/resource-policy: keep
+  labels:
+    {}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  volumeName: gitea-shared-storage
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: gitea-postgres
+  namespace: gitea
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: 192.168.1.11
+    path: /export/nfs/gitea/postgres
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: gitea-redis
+  namespace: gitea
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: 192.168.1.11
+    path: /export/nfs/gitea/redis
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: gitea-act-runner
+  namespace: gitea
+spec:
+  capacity:
+    storage: 1Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: 192.168.1.11
+    path: /export/nfs/gitea/act-runner

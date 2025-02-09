@@ -1,0 +1,206 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: coredns
+  labels:
+    name: coredns
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coredns
+  namespace: coredns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: coredns
+  template:
+    metadata:
+      labels:
+        k8s-app: coredns
+      annotations:
+        pod.alpha.kubernetes.io/init-containers: null
+        pod.beta.kubernetes.io/init-containers: null
+    spec:
+      initContainers:
+      # containers:
+        - name: etcd
+          image: quay.io/coreos/etcd:v3.5.7-arm64
+          restartPolicy: "Always" # Sidecar Container として動作させる
+          command: ["/usr/local/bin/etcd"]
+          args:
+            - --data-dir=/etcd-data
+            - --name=s1
+            - --listen-client-urls=http://0.0.0.0:2379
+            - --advertise-client-urls=http://0.0.0.0:2379
+            - --listen-peer-urls=http://0.0.0.0:2380
+            - --initial-advertise-peer-urls=http://0.0.0.0:2380
+            - --initial-cluster=s1=http://0.0.0.0:2380
+            - --initial-cluster-token=tkn
+            - --initial-cluster-state=new
+          volumeMounts:
+            - mountPath: "/etcd-data"
+              name: etcddata
+          ports:
+            - name: et
+              containerPort: 2379
+            - name: et2
+              containerPort: 2380
+            - name: et3
+              containerPort: 4001
+      containers:
+        - name: coredns
+          image: coredns/coredns:coredns-arm64
+          args:
+            - -conf
+            - /etc/coredns/Corefile
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/coredns
+              readOnly: true
+      volumes:
+        - name: config-volume
+          configMap:
+            name: coredns-custom-config
+        - name: etcddata
+          persistentVolumeClaim:
+            claimName: local-claim
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coredns-services
+  namespace: coredns
+spec:
+  type: ClusterIP
+  externalIPs:
+    - 192.168.1.11
+  selector:
+    k8s-app: coredns
+  ports:
+    - name: dns
+      port: 53
+      protocol: UDP
+    - name: dns-tcp
+      port: 53
+      protocol: TCP
+    - name: etcd-p
+      port: 2379
+      protocol: TCP
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: external-dns
+  namespace: coredns
+rules:
+  - apiGroups: [""]
+    resources: ["services", "endpoints", "pods"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: ["extensions", "networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: external-dns-viewer
+  namespace: coredns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: external-dns
+subjects:
+- kind: ServiceAccount
+  name: external-dns
+  namespace: kube-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: external-dns
+  namespace: kube-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns
+  namespace: kube-system
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: external-dns
+  template:
+    metadata:
+      labels:
+        app: external-dns
+    spec:
+      serviceAccountName: external-dns
+      containers:
+      - name: external-dns
+        image: registry.k8s.io/external-dns/external-dns:v0.15.1
+        args:
+        - --source=ingress
+        - --provider=coredns
+        env:
+        - name: ETCD_URLS
+          value: http://192.168.1.11:2379
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom-config
+  namespace: coredns
+data:
+  Corefile: |
+    ingress.home {
+      etcd {
+          path /skydns
+          endpoint http://localhost:2379
+          fallthrough
+      }
+      cache
+      log
+      errors
+    }
+
+    . {
+        forward . /etc/resolv.conf
+    }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: coredns-pv
+  namespace: coredns
+spec:
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: ""
+  nfs:
+    server: 192.168.1.11
+    path: /export/nfs/coredns
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: local-claim
+  namespace: coredns
+spec:
+  storageClassName: ""
+  accessModes: [ "ReadWriteOnce" ]
+  volumeName: "coredns-pv"
+  resources:
+    requests:
+      storage: 500Mi
