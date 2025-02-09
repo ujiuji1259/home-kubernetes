@@ -71,6 +71,7 @@ gitのhostサービス。軽い
     * persistent volume claimはdirectpv用に設定する必要あり
     * user/passwordはよしなにやってね
     * mail addressは初期はgitea@hogeとかになってるので変える
+* [ミラー](https://docs.gitea.com/usage/repo-mirror)の設定をしておくと吉
  
 ### argocd
 gitops。
