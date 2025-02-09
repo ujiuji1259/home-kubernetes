@@ -71,3 +71,9 @@ gitのhostサービス。軽い
     * persistent volume claimはdirectpv用に設定する必要あり
     * user/passwordはよしなにやってね
     * mail addressは初期はgitea@hogeとかになってるので変える
+ 
+### argocd
+gitops。
+基本install.yaml通りでいいが、家に閉じるのでhttpsを無効化するために--insecureフラグを立てる
+
+* https://argo-cd.readthedocs.io/en/stable/getting_started/
