@@ -77,3 +77,4 @@ gitops。
 基本install.yaml通りでいいが、家に閉じるのでhttpsを無効化するために--insecureフラグを立てる
 
 * https://argo-cd.readthedocs.io/en/stable/getting_started/
+* giteaに立てたhome-kubernetes-app/argocd_appsにApplicationを配置すると、自動的にargocdのApplicationに登録されるようになる（argocd_apps.yaml）

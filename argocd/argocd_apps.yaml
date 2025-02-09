@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-app
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  source:
+    path: argocd_apps
+    repoURL: http://gitea-http.gitea.svc.cluster.local:3000/ujiie/home-kubernetes-app
+    targetRevision: main
+  syncPolicy:
+    automated:
+      prune: true
