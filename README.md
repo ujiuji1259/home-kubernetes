@@ -72,6 +72,43 @@ gitのhostサービス。軽い
     * user/passwordはよしなにやってね
     * mail addressは初期はgitea@hogeとかになってるので変える
 * [ミラー](https://docs.gitea.com/usage/repo-mirror)の設定をしておくと吉
+
+#### actions
+docker buildするときはdocker.sockとdaemon.jsonをmountしておく必要がある。
+
+daemon.jsonはprivate repoにpushする際にhttpを許容するための設定を入れている。
+
+```
+name: ci
+
+on:
+  push:
+
+jobs:
+  docker:
+    runs-on: ubuntu-docker
+    container:
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - /etc/docker/daemon.json:/etc/docker/daemon.json
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config-inline: |
+            [registry."192.168.1.249:5000"]
+              http = true
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: 
+          push: true
+          tags: 192.168.1.249:5000/sample:latest
+```
  
 ### argocd
 gitops。
