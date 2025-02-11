@@ -744,8 +744,10 @@ data:
       enabled: false
     runner:
       labels:
-        - "ubuntu-22.04:docker://node:16-bullseye"
         - "ubuntu-docker:docker://catthehacker/ubuntu:act-latest"
+    container:
+      valid_volumes:
+        - /var/run/docker.sock
 ---
 # Source: gitea/templates/gitea/act_runner/config-scripts.yaml
 apiVersion: v1
@@ -1660,7 +1662,7 @@ spec:
             - name: DOCKER_HOST
               value: tcp://127.0.0.1:2376
             - name: DOCKER_TLS_VERIFY
-              value: "1"
+              value: "0"
             - name: DOCKER_CERT_PATH
               value: /certs/server
             - name: GITEA_RUNNER_REGISTRATION_TOKEN
@@ -1689,7 +1691,7 @@ spec:
             - name: DOCKER_HOST
               value: tcp://127.0.0.1:2376
             - name: DOCKER_TLS_VERIFY
-              value: "1"
+              value: "0"
             - name: DOCKER_CERT_PATH
               value: /certs/server
           securityContext:
