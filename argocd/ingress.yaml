@@ -16,7 +16,7 @@ metadata:
 
 spec:
   rules:
-  - host: argocd.ingress.home
+  - host: argocd.home.jp
     http:
       paths:
       - path: /

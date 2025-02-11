@@ -16,7 +16,7 @@ metadata:
 
 spec:
   rules:
-  - host: gitea.ingress.home
+  - host: gitea.home.jp
     http:
       paths:
       - path: /

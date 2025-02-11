@@ -161,7 +161,7 @@ metadata:
   namespace: coredns
 data:
   Corefile: |
-    ingress.home {
+    home.jp {
       etcd {
           path /skydns
           endpoint http://localhost:2379

@@ -745,6 +745,7 @@ data:
     runner:
       labels:
         - "ubuntu-22.04:docker://node:16-bullseye"
+        - "ubuntu-docker:docker://catthehacker/ubuntu:act-latest"
 ---
 # Source: gitea/templates/gitea/act_runner/config-scripts.yaml
 apiVersion: v1
@@ -1668,7 +1669,7 @@ spec:
                   name: "gitea-actions-token"
                   key: "token"
             - name: GITEA_INSTANCE_URL
-              value: http://gitea.ingress.home
+              value: http://gitea-http.gitea.svc.cluster.local:3000
             - name: CONFIG_FILE
               value: /actrunner/config.yaml
           resources:
